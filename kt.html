@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表达卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+
+        .card-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .background-slideshow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .background-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .background-slide.active {
+            opacity: 1;
+        }
+
+        .particle-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .heart-particle {
+            position: absolute;
+            color: #ff6b9d;
+            font-size: 20px;
+            animation: heartFloat linear infinite;
+        }
+
+        @keyframes heartFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) scale(1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .content-wrapper {
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            padding: 40px;
+            max-width: 800px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-wrapper.position-center {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .content-wrapper.position-top-left {
+            top: 10%;
+            left: 10%;
+            transform: translate(0, 0);
+            text-align: left;
+        }
+
+        .content-wrapper.position-top-center {
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, 0);
+        }
+
+        .content-wrapper.position-top-right {
+            top: 10%;
+            right: 10%;
+            left: auto;
+            transform: translate(0, 0);
+            text-align: right;
+        }
+
+        .content-wrapper.position-middle-left {
+            top: 50%;
+            left: 10%;
+            transform: translate(0, -50%);
+            text-align: left;
+        }
+
+        .content-wrapper.position-middle-right {
+            top: 50%;
+            right: 10%;
+            left: auto;
+            transform: translate(0, -50%);
+            text-align: right;
+        }
+
+        .content-wrapper.position-bottom-left {
+            bottom: 10%;
+            left: 10%;
+            top: auto;
+            transform: translate(0, 0);
+            text-align: left;
+        }
+
+        .content-wrapper.position-bottom-center {
+            bottom: 10%;
+            left: 50%;
+            top: auto;
+            transform: translate(-50%, 0);
+        }
+
+        .content-wrapper.position-bottom-right {
+            bottom: 10%;
+            right: 10%;
+            left: auto;
+            top: auto;
+            transform: translate(0, 0);
+            text-align: right;
+        }
+
+        .message-text {
+            font-size: 2.5em;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8),
+                         0 0 40px rgba(255, 107, 157, 0.6),
+                         0 0 60px rgba(255, 107, 157, 0.4);
+            animation: glow 2s ease-in-out infinite alternate;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .message-text.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px rgba(255, 107, 157, 0.8),
+                             0 0 40px rgba(255, 107, 157, 0.6);
+            }
+            to {
+                text-shadow: 0 0 30px rgba(255, 107, 157, 1),
+                             0 0 60px rgba(255, 107, 157, 0.8),
+                             0 0 80px rgba(255, 107, 157, 0.6);
+            }
+        }
+
+        .heartbeat-clock {
+            display: none;
+            font-size: 1.8em;
+            color: #ff6b9d;
+            margin-top: 20px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .heartbeat-clock.show {
+            display: block;
+        }
+
+        .heartbeat-clock.hidden {
+            opacity: 0;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .settings-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .settings-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 999;
+            padding: 80px 30px 30px;
+            overflow-y: auto;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .settings-panel.show {
+            right: 0;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-section h3 {
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #ff6b9d;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .effect-select, .position-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .effect-select:focus, .position-select:focus {
+            outline: none;
+            border-color: #ff6b9d;
+        }
+
+        .effect-select option, .position-select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 5px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .image-preview {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .preview-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .preview-item:hover {
+            transform: scale(1.05);
+            border-color: #ff6b9d;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 0, 0, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #fff;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .preview-item .remove-btn:hover {
+            transform: scale(1.2);
+            background: rgba(255, 0, 0, 1);
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .volume-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff6b9d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .font-size-control label {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .font-size-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        .font-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff6b9d;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .message-text {
+                font-size: 1.8em;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .heartbeat-clock {
+                font-size: 1.4em;
+            }
+
+            .content-wrapper {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="background-slideshow" id="backgroundSlideshow"></div>
+        <div class="particle-effect" id="particleEffect"></div>
+
+        <div class="content-wrapper position-center" id="contentWrapper">
+            <div class="message-text" id="messageText">
+                点击设置按钮自定义你的表达卡片 ❤️
+            </div>
+            <div class="heartbeat-clock" id="heartbeatClock">
+                💓 <span id="clockTime"></span>
+            </div>
+        </div>
+    </div>
+
+    <button class="settings-toggle" id="settingsToggle">⚙️</button>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-section">
+            <h3>🖼️ 背景图片</h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="bgImageInput" accept="image/*" multiple>
+                <label for="bgImageInput" class="file-input-label">上传背景图片（可多选）</label>
+            </div>
+            <div class="image-preview" id="imagePreview"></div>
+        </div>
+
+        <div class="settings-section">
+            <h3>💬 表达语句</h3>
+            <textarea class="text-input" id="messageInput" placeholder="输入你想表达的话语...">你是我最美的遇见 ❤️</textarea>
+            <button class="btn btn-primary" onclick="updateMessage()">更新文字</button>
+
+            <div class="checkbox-wrapper" style="margin-top: 15px;">
+                <input type="checkbox" id="showMessageToggle" checked onchange="toggleMessageVisibility(this.checked)">
+                <label for="showMessageToggle">显示祝福语</label>
+            </div>
+
+            <div class="font-size-control">
+                <label>字体大小:</label>
+                <input type="range" class="font-size-slider" id="fontSizeSlider" min="1" max="5" step="0.1" value="2.5" onchange="changeFontSize(this.value)">
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>📍 展示位置</h3>
+            <select class="position-select" id="positionSelect" onchange="changePosition(this.value)">
+                <option value="position-center">居中</option>
+                <option value="position-top-left">左上角</option>
+                <option value="position-top-center">顶部居中</option>
+                <option value="position-top-right">右上角</option>
+                <option value="position-middle-left">左侧居中</option>
+                <option value="position-middle-right">右侧居中</option>
+                <option value="position-bottom-left">左下角</option>
+                <option value="position-bottom-center">底部居中</option>
+                <option value="position-bottom-right">右下角</option>
+            </select>
+        </div>
+
+        <div class="settings-section">
+            <h3>🎵 背景音乐</h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="audioInput" accept="audio/*">
+                <label for="audioInput" class="file-input-label">上传音频文件</label>
+            </div>
+            <div class="audio-controls" id="audioControls" style="display: none;">
+                <button class="btn btn-secondary" id="playPauseBtn" onclick="toggleAudio()">▶️ 播放</button>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" onchange="changeVolume(this.value)">
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>✨ 动画特效</h3>
+            <select class="effect-select" id="effectSelect" onchange="changeEffect(this.value)">
+                <option value="particles">粒子飘浮</option>
+                <option value="hearts">爱心飘浮</option>
+                <option value="snow">雪花飘落</option>
+                <option value="stars">星光闪烁</option>
+                <option value="fireflies">萤火虫</option>
+                <option value="none">无特效</option>
+            </select>
+        </div>
+
+        <div class="settings-section">
+            <h3>⏰ 心跳时钟</h3>
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="clockToggle" onchange="toggleClock(this.checked)">
+                <label for="clockToggle">显示心跳时钟</label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>🎨 主题颜色</h3>
+            <div class="checkbox-wrapper">
+                <input type="color" id="colorPicker" value="#ff6b9d" onchange="changeThemeColor(this.value)">
+                <label for="colorPicker">选择主题色</label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <button class="btn btn-secondary" onclick="hideSettings()">隐藏设置</button>
+            <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop></audio>
+
+    <script>
+        let backgroundImages = [];
+        let currentSlideIndex = 0;
+        let slideInterval;
+        let audioElement = document.getElementById('bgMusic');
+        let isPlaying = false;
+        let currentEffect = 'particles';
+        let particleInterval;
+
+        // 初始化
+        window.onload = function() {
+            loadSettings();
+            startSlideshow();
+            createParticles();
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
+
+        // 设置面板切换
+        document.getElementById('settingsToggle').addEventListener('click', function() {
+            document.getElementById('settingsPanel').classList.toggle('show');
+        });
+
+        function hideSettings() {
+            document.getElementById('settingsPanel').classList.remove('show');
+        }
+
+        // 背景图片上传
+        document.getElementById('bgImageInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    backgroundImages.push(event.target.result);
+                    updateImagePreview();
+                    updateSlideshow();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function updateImagePreview() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            backgroundImages.forEach((img, index) => {
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                item.innerHTML = `
+                    <img src="${img}" alt="Background ${index + 1}">
+                    <div class="remove-btn" onclick="removeImage(${index})">×</div>
+                `;
+                preview.appendChild(item);
+            });
+        }
+
+        function removeImage(index) {
+            backgroundImages.splice(index, 1);
+            updateImagePreview();
+            updateSlideshow();
+        }
+
+        function updateSlideshow() {
+            const slideshow = document.getElementById('backgroundSlideshow');
+            slideshow.innerHTML = '';
+
+            if (backgroundImages.length === 0) {
+                slideshow.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                return;
+            }
+
+            backgroundImages.forEach((img, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'background-slide' + (index === 0 ? ' active' : '');
+                slide.style.backgroundImage = `url(${img})`;
+                slideshow.appendChild(slide);
+            });
+
+            currentSlideIndex = 0;
+            restartSlideshow();
+        }
+
+        function startSlideshow() {
+            if (backgroundImages.length > 1) {
+                slideInterval = setInterval(() => {
+                    const slides = document.querySelectorAll('.background-slide');
+                    slides[currentSlideIndex].classList.remove('active');
+                    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+                    slides[currentSlideIndex].classList.add('active');
+                }, 5000);
+            }
+        }
+
+        function restartSlideshow() {
+            clearInterval(slideInterval);
+            startSlideshow();
+        }
+
+        // 更新消息文本
+        function updateMessage() {
+            const message = document.getElementById('messageInput').value;
+            document.getElementById('messageText').textContent = message || '点击设置按钮自定义你的表达卡片 ❤️';
+        }
+
+        // 切换祝福语显示
+        function toggleMessageVisibility(show) {
+            const messageText = document.getElementById('messageText');
+            if (show) {
+                messageText.classList.remove('hidden');
+            } else {
+                messageText.classList.add('hidden');
+            }
+        }
+
+        // 改变字体大小
+        function changeFontSize(size) {
+            const messageText = document.getElementById('messageText');
+            messageText.style.fontSize = size + 'em';
+        }
+
+        // 改变位置
+        function changePosition(position) {
+            const wrapper = document.getElementById('contentWrapper');
+            wrapper.className = 'content-wrapper ' + position;
+        }
+
+        // 音频控制
+        document.getElementById('audioInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    audioElement.src = event.target.result;
+                    document.getElementById('audioControls').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function toggleAudio() {
+            const btn = document.getElementById('playPauseBtn');
+            if (isPlaying) {
+                audioElement.pause();
+                btn.textContent = '▶️ 播放';
+            } else {
+                audioElement.play();
+                btn.textContent = '⏸️ 暂停';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function changeVolume(value) {
+            audioElement.volume = value / 100;
+        }
+
+        // 特效切换
+        function changeEffect(effect) {
+            currentEffect = effect;
+            clearInterval(particleInterval);
+            const container = document.getElementById('particleEffect');
+            container.innerHTML = '';
+
+            switch(effect) {
+                case 'particles':
+                    createParticles();
+                    break;
+                case 'hearts':
+                    createHearts();
+                    break;
+                case 'snow':
+                    createSnow();
+                    break;
+                case 'stars':
+                    createStars();
+                    break;
+                case 'fireflies':
+                    createFireflies();
+                    break;
+            }
+        }
+
+        function createParticles() {
+            particleInterval = setInterval(() => {
+                const container = document.getElementById('particleEffect');
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 10 + 5 + 'px';
+                particle.style.animationDuration = Math.random() * 10 + 10 + 's';
+                container.appendChild(particle);
+
+                setTimeout(() => particle.remove(), 20000);
+            }, 300);
+        }
+
+        function createHearts() {
+            particleInterval = setInterval(() => {
+                const container = document.getElementById('particleEffect');
+                const heart = document.createElement('div');
+                heart.className = 'heart-particle';
+                heart.textContent = '❤️';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = Math.random() * 8 + 8 + 's';
+                heart.style.fontSize = Math.random() * 20 + 15 + 'px';
+                container.appendChild(heart);
+
+                setTimeout(() => heart.remove(), 16000);
+            }, 400);
+        }
+
+        function createSnow() {
+            particleInterval = setInterval(() => {
+                const container = document.getElementById('particleEffect');
+                const snow = document.createElement('div');
+                snow.className = 'particle';
+                snow.style.left = Math.random() * 100 + '%';
+                snow.style.width = snow.style.height = Math.random() * 8 + 4 + 'px';
+                snow.style.background = '#fff';
+                snow.style.animationDuration = Math.random() * 8 + 8 + 's';
+                container.appendChild(snow);
+
+                setTimeout(() => snow.remove(), 16000);
+            }, 200);
+        }
+
+        function createStars() {
+            for (let i = 0; i < 50; i++) {
+                const container = document.getElementById('particleEffect');
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = star.style.height = Math.random() * 3 + 2 + 'px';
+                star.style.background = '#fff';
+                star.style.borderRadius = '50%';
+                star.style.animation = `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes twinkle {
+                    0%, 100% { opacity: 0.3; transform: scale(1); }
+                    50% { opacity: 1; transform: scale(1.5); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        function createFireflies() {
+            particleInterval = setInterval(() => {
+                const container = document.getElementById('particleEffect');
+                const firefly = document.createElement('div');
+                firefly.style.position = 'absolute';
+                firefly.style.width = firefly.style.height = Math.random() * 6 + 4 + 'px';
+                firefly.style.background = 'radial-gradient(circle, #ffd700, transparent)';
+                firefly.style.borderRadius = '50%';
+                firefly.style.boxShadow = '0 0 10px #ffd700, 0 0 20px #ffd700';
+                firefly.style.left = Math.random() * 100 + '%';
+                firefly.style.top = Math.random() * 100 + '%';
+                firefly.style.animation = `fireflyMove ${Math.random() * 10 + 10}s ease-in-out infinite`;
+                firefly.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(firefly);
+
+                setTimeout(() => firefly.remove(), 20000);
+            }, 500);
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fireflyMove {
+                    0%, 100% {
+                        transform: translate(0, 0) scale(1);
+                        opacity: 0.3;
+                    }
+                    25% {
+                        transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(1.2);
+                        opacity: 1;
+                    }
+                    50% {
+                        transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(0.8);
+                        opacity: 0.6;
+                    }
+                    75% {
+                        transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(1.1);
+                        opacity: 0.9;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // 心跳时钟
+        function toggleClock(show) {
+            const clock = document.getElementById('heartbeatClock');
+            if (show) {
+                clock.classList.add('show');
+                clock.classList.remove('hidden');
+            } else {
+                clock.classList.remove('show');
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('clockTime').textContent = timeString;
+        }
+
+        // 主题颜色
+        function changeThemeColor(color) {
+            document.documentElement.style.setProperty('--theme-color', color);
+            const messageText = document.getElementById('messageText');
+            messageText.style.textShadow = `
+                0 0 20px ${color}cc,
+                0 0 40px ${color}99,
+                0 0 60px ${color}66
+            `;
+            const clock = document.getElementById('heartbeatClock');
+            clock.style.color = color;
+        }
+
+        // 保存设置到localStorage
+        function saveSettings() {
+            const settings = {
+                message: document.getElementById('messageInput').value,
+                showMessage: document.getElementById('showMessageToggle').checked,
+                fontSize: document.getElementById('fontSizeSlider').value,
+                position: document.getElementById('positionSelect').value,
+                effect: document.getElementById('effectSelect').value,
+                showClock: document.getElementById('clockToggle').checked,
+                themeColor: document.getElementById('colorPicker').value
+            };
+            localStorage.setItem('cardSettings', JSON.stringify(settings));
+            alert('设置已保存！');
+        }
+
+        // 加载设置
+        function loadSettings() {
+            const settings = localStorage.getItem('cardSettings');
+            if (settings) {
+                const parsed = JSON.parse(settings);
+                document.getElementById('messageInput').value = parsed.message || '';
+                document.getElementById('showMessageToggle').checked = parsed.showMessage !== undefined ? parsed.showMessage : true;
+                document.getElementById('fontSizeSlider').value = parsed.fontSize || 2.5;
+                document.getElementById('positionSelect').value = parsed.position || 'position-center';
+                document.getElementById('effectSelect').value = parsed.effect || 'particles';
+                document.getElementById('clockToggle').checked = parsed.showClock || false;
+                document.getElementById('colorPicker').value = parsed.themeColor || '#ff6b9d';
+
+                updateMessage();
+                toggleMessageVisibility(parsed.showMessage !== undefined ? parsed.showMessage : true);
+                changeFontSize(parsed.fontSize || 2.5);
+                changePosition(parsed.position || 'position-center');
+                changeEffect(parsed.effect || 'particles');
+                toggleClock(parsed.showClock || false);
+                changeThemeColor(parsed.themeColor || '#ff6b9d');
+            }
+        }
+    </script>
+</body>
+</html>
